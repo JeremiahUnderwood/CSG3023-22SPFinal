@@ -20,17 +20,17 @@ public class Ball : MonoBehaviour
     [Header("General Settings")]
     public int numberOfBalls;
     public int score;                //assumeed score cannot be a decimal number
-    public Rigidbody rb;             //reference to rigid body
+    [HideInInspector] public Rigidbody rb;             //reference to rigid body
     [HideInInspector] public AudioSource audioSource;
-    [HideInInspector] public GameObject paddle;         //reference to paddle
+    public GameObject paddle;         //reference to paddle, set in inspector
     public bool isInPlay;
 
 
     [Header("Ball Settings")]
-    /*[HideInInspector]*/ public Text ballTxt;
-    /*[HideInInspector]*/ public Text scoreTxt;
+    public Text ballTxt;               //references to text, set in inspector
+    public Text scoreTxt;
     public Vector3 initialForce;
-    public float speed;
+    public float speed;                //to actually make the game interesting, I made the ball start moving diagonanally
 
 
 
@@ -42,10 +42,6 @@ public class Ball : MonoBehaviour
         //set variables
         rb = this.GetComponent<Rigidbody>();
         audioSource = this.GetComponent<AudioSource>();
-
-        // set textBoxes
-        ballTxt = GameObject.Find("txt_Lives").GetComponent<Text>();
-        scoreTxt = GameObject.Find("txt_Score").GetComponent<Text>();
 
     }//end Awake()
 
@@ -61,14 +57,30 @@ public class Ball : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        //set UI
+        ballTxt.text = "Balls Left: " + numberOfBalls.ToString();
+        scoreTxt.text = "Score: " + score.ToString();
+
+        if (!isInPlay)
+        {
+            //set new position (might change later) to match paddle
+            Vector3 newPos = transform.position;
+            newPos.x = paddle.transform.position.x;
+            this.transform.position = newPos;
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                isInPlay = true;
+                Move();
+            }
+        }
     }//end Update()
 
 
     private void LateUpdate()
     {
-
-
+        if (isInPlay) {
+            rb.velocity = rb.velocity.normalized * speed;  //keeps speed constant
+        }
     }//end LateUpdate()
 
 
@@ -88,8 +100,28 @@ public class Ball : MonoBehaviour
     public void Move()
     {
         rb.AddForce(initialForce);
+    }//end move
+
+    private void OnCollisionEnter(Collision collision)      //when ball collides with an object
+    {
+        audioSource.Play();          //play audio
+        if (collision.gameObject.tag == "Brick")            //if it was a brick, destroy the brick and increase score
+        {
+            score += 100;
+            Destroy(collision.gameObject);
+        }
     }
 
-
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "OutBounds")
+        {
+            numberOfBalls -= 1;
+            if (numberOfBalls > 0)
+            {
+                Invoke("SetStartingPos", 2f);
+            }
+        }
+    }
 
 }
