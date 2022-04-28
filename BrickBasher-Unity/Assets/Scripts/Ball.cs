@@ -12,29 +12,46 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public class Ball : MonoBehaviour
 {
     [Header("General Settings")]
+    public int numberOfBalls;
+    public int score;                //assumeed score cannot be a decimal number
+    public Rigidbody rb;             //reference to rigid body
+    [HideInInspector] public AudioSource audioSource;
+    [HideInInspector] public GameObject paddle;         //reference to paddle
+    public bool isInPlay;
 
 
     [Header("Ball Settings")]
-   
+    /*[HideInInspector]*/ public Text ballTxt;
+    /*[HideInInspector]*/ public Text scoreTxt;
+    public Vector3 initialForce;
+    public float speed;
 
 
- 
+
 
 
     //Awake is called when the game loads (before Start).  Awake only once during the lifetime of the script instance.
     void Awake()
     {
+        //set variables
+        rb = this.GetComponent<Rigidbody>();
+        audioSource = this.GetComponent<AudioSource>();
+
+        // set textBoxes
+        ballTxt = GameObject.Find("txt_Lives").GetComponent<Text>();
+        scoreTxt = GameObject.Find("txt_Score").GetComponent<Text>();
 
     }//end Awake()
 
 
-        // Start is called before the first frame update
-        void Start()
+    // Start is called before the first frame update
+    void Start()
     {
         SetStartingPos(); //set the starting position
 
@@ -68,7 +85,10 @@ public class Ball : MonoBehaviour
     }//end SetStartingPos()
 
 
-
+    public void Move()
+    {
+        rb.AddForce(initialForce);
+    }
 
 
 
